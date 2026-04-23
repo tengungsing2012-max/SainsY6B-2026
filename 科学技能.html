@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>六年级科学：科学技能挑战 (Year 6 Science Quiz)</title>
+    <style>
+        :root {
+            --primary: #4A90E2;
+            --correct: #2ECC71;
+            --wrong: #E74C3C;
+            --bg: #F4F7F6;
+            --text: #333;
+            --card-bg: #FFFFFF;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            padding: 25px;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .hidden { display: none; }
+        .text-center { text-align: center; }
+        h1 { font-size: 1.5rem; color: var(--primary); margin-bottom: 10px;}
+        h2 { font-size: 1.2rem; }
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            transition: opacity 0.2s;
+        }
+        .btn:active { opacity: 0.8; }
+        .btn:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+        .timer {
+            background-color: #FFEAA7;
+            padding: 5px 10px;
+            border-radius: 20px;
+            color: #D35400;
+        }
+        .question-text {
+            font-size: 1.15rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option-btn {
+            background-color: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: left;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            line-height: 1.4;
+        }
+        .option-btn:hover { border-color: var(--primary); background-color: #eaf3fc; }
+        .option-btn.correct-clicked { background-color: var(--correct); color: white; border-color: var(--correct); }
+        .option-btn.wrong-clicked { background-color: var(--wrong); color: white; border-color: var(--wrong); }
+        .option-btn:disabled { cursor: not-allowed; }
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            line-height: 1.4;
+        }
+        .feedback.correct-box { background-color: #e8f8f5; border-left: 5px solid var(--correct); color: #1e8449;}
+        .feedback.wrong-box { background-color: #fdedec; border-left: 5px solid var(--wrong); color: #c0392b;}
+        .image-placeholder {
+            font-size: 3rem;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .grade { font-size: 3rem; font-weight: bold; color: var(--primary); margin: 10px 0;}
+        .motivational-text { font-size: 1.1rem; color: #d35400; margin: 20px 0; font-weight: bold; line-height: 1.5;}
+        .link-btn {
+            display: inline-block;
+            background-color: #27ae60;
+            color: white;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="start-screen">
+    <div class="text-center">
+        <h1>六年级科学挑战<br>Year 6 Science Quiz</h1>
+        <div class="image-placeholder">🚀🔬</div>
+        <p>测试你的科学程序技能！共有 25 题，每题 20 秒，满分 100 分。<br>Test your Science Process Skills! 25 questions, 20s each, 100 points total.</p>
+        <button class="btn" onclick="startGame()">开始游戏 (Start Game)</button>
+    </div>
+</div>
+
+<div class="container hidden" id="quiz-screen">
+    <div class="header-info">
+        <div id="question-tracker">题号 (Q): 1/25</div>
+        <div class="timer" id="timer-display">⏱ 20s</div>
+    </div>
+    
+    <div class="image-placeholder" id="q-image"></div>
+    <div class="question-text" id="question-text"></div>
+    
+    <div class="options-grid" id="options-container">
+        </div>
+
+    <div id="feedback-container" class="feedback hidden"></div>
+    
+    <button class="btn hidden" id="next-btn" onclick="nextQuestion()">下一题 (Next)</button>
+</div>
+
+<div class="container hidden" id="end-screen">
+    <div class="text-center">
+        <h1>挑战完成！<br>Challenge Completed!</h1>
+        <div class="image-placeholder">🏆</div>
+        <h2>你的总分 (Your Score): <span id="final-score"></span> / 100</h2>
+        <div>评级 (Grade):</div>
+        <div class="grade" id="final-grade"></div>
+        
+        <div class="motivational-text">
+            无论结果如何，老师都为你感到骄傲！<br>
+            Keep up the great effort! 持续加油，永不放弃！
+        </div>
+
+        <a href="https://forms.gle/LrUpbRexTE8BqfKo8" target="_blank" class="link-btn">点击这里填写你的分数 (Submit Score)</a>
+        
+        <button class="btn" style="background-color: #7f8c8d; margin-top: 20px;" onclick="resetGame()">不满意得分？重新挑战 (Play Again)</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        {
+            icon: "🚤",
+            q: "在橡皮筋动力船实验中，孩子们想要找出什么？<br>What do the children want to find out in the rubber band boat experiment?",
+            options: [
+                "船的颜色如何影响速度 (How boat color affects speed)",
+                "如何让船只移动得又快又远 (How to make the boat move faster and further)",
+                "橡皮筋的颜色 (The color of the rubber band)",
+                "水池的深度 (The depth of the pool)"
+            ],
+            answer: 1,
+            explanation: "孩子们想要研究如何改变船只的螺旋桨，从而让船只移动得又快又远。(The goal is to find ways to make the boat travel faster and further by modifying the propeller.)"
+        },
+        {
+            icon: "🚤",
+            q: "在实验1中，螺旋桨转动的快慢被称为什么变数？<br>In Experiment 1, what type of variable is the speed of the propeller?",
+            options: [
+                "固定性变数 (Constant variable)",
+                "反应性变数 (Responding variable)",
+                "操纵性变数 (Manipulated variable)",
+                "无关变数 (Irrelevant variable)"
+            ],
+            answer: 2,
+            explanation: "我们主动改变扭转橡皮筋的圈数来改变螺旋桨转动的快慢，因此它是操纵性变数。(We actively change it, so it is the manipulated variable.)"
+        },
+        {
+            icon: "📏",
+            q: "船只实验中，我们必须观察及记录什么？(反应性变数)<br>What must we observe and record in the boat experiment? (Responding variable)",
+            options: [
+                "船只移动的距离 (The distance the boat moves)",
+                "螺旋桨的材料 (The material of the propeller)",
+                "水温的变化 (The change in water temperature)",
+                "橡皮筋的粗细 (The thickness of the rubber band)"
+            ],
+            answer: 0,
+            explanation: "实验结果是根据船只在指定时间内移动的距离来决定的。(The outcome depends on the distance the boat moves in a given time.)"
+        },
+        {
+            icon: "🤔",
+            q: "关于船只移动实验，以下哪个是正确的假设？<br>Which is a correct hypothesis for the boat movement experiment?",
+            options: [
+                "螺旋桨越大，水就越冷 (The bigger the propeller, the colder the water)",
+                "螺旋桨转动越快，船只移动的距离越远 (The faster the propeller spins, the further the boat moves)",
+                "橡皮筋越多，船越重 (More rubber bands make the boat heavier)",
+                "船只的大小影响水池的长度 (The boat size affects the pool length)"
+            ],
+            answer: 1,
+            explanation: "假设是说明操纵性变数（螺旋桨转速）与反应性变数（移动距离）之间的关系。(A hypothesis relates the manipulated variable to the responding variable.)"
+        },
+        {
+            icon: "⏱️",
+            q: "如何为“船只的快慢”下操作性定义？<br>How can we define the 'speed of the boat' operationally?",
+            options: [
+                "船只看起来有多快 (How fast the boat looks)",
+                "船只使用的橡皮筋数量 (The number of rubber bands used)",
+                "根据船只在 3 秒内移动的距离来确定 (Determine based on the distance the boat moves in 3 seconds)",
+                "根据螺旋桨的颜色来确定 (Determine based on the color of the propeller)"
+            ],
+            answer: 2,
+            explanation: "操作性定义必须是可以通过测量或观察来具体说明的。(An operational definition must be measurable, like distance covered in a specific time.)"
+        },
+        {
+            icon: "✂️",
+            q: "课本中，使用什么材料制作螺旋桨？<br>In the textbook, what material is used to make the propeller?",
+            options: [
+                "铁片 (Iron plates)",
+                "塑料片 (Plastic pieces)",
+                "木板 (Wooden planks)",
+                "玻璃 (Glass)"
+            ],
+            answer: 1,
+            explanation: "制作橡皮筋动力船的螺旋桨使用的是剪成X形的塑料片。(Plastic pieces cut into an X-shape are used.)"
+        },
+        {
+            icon: "📈",
+            q: "随着时间的变化，螺旋桨转动的快慢有什么改变？<br>Over time, what happens to the speed of the spinning propeller?",
+            options: [
+                "保持不变 (Remains constant)",
+                "逐渐变快 (Gradually increases)",
+                "逐渐下降 (Gradually decreases)",
+                "忽快忽慢 (Fluctuates randomly)"
+            ],
+            answer: 2,
+            explanation: "橡皮筋的动力释放后，随着时间推移，螺旋桨转动的快慢会逐渐下降。(As the stored energy releases, the spinning speed gradually decreases over time.)"
+        },
+        {
+            icon: "🛠️",
+            q: "在“升级版橡皮筋动力船”中，学生想检验哪个新的变数？<br>In the 'Upgraded Boat', what new variable do the students want to test?",
+            options: [
+                "水池的深度 (Depth of the pool)",
+                "船身的颜色 (Color of the boat body)",
+                "螺旋桨的大小 (Size of the propeller)",
+                "天气的变化 (Weather changes)"
+            ],
+            answer: 2,
+            explanation: "升级版实验探讨的是螺旋桨的大小是否会影响船只移动的距离。(The upgraded experiment investigates if the propeller's size affects travel distance.)"
+        },
+        {
+            icon: "🌡️",
+            q: "实验3“保温大作战”的目的是什么？<br>What is the purpose of Experiment 3 'Insulation Battle'?",
+            options: [
+                "让水结冰 (To freeze the water)",
+                "检验哪种材料的隔热效果最佳 (To test which material has the best heat insulation effect)",
+                "测试玻璃瓶的硬度 (To test the hardness of the glass bottle)",
+                "测量水的重量 (To measure the weight of the water)"
+            ],
+            answer: 1,
+            explanation: "同学们需要运用四周的材料，让玻璃瓶内的热水保温。(The goal is to use surrounding materials to keep the hot water warm.)"
+        },
+        {
+            icon: "⛺",
+            q: "在保温大作战中，同学们提议用什么材料包裹玻璃瓶？<br>What materials did the students suggest to wrap the glass bottle?",
+            options: [
+                "沙子和石头 (Sand and stones)",
+                "毛巾或帐篷套 (Towel or tent cover)",
+                "铁丝网 (Wire mesh)",
+                "冰块 (Ice cubes)"
+            ],
+            answer: 1,
+            explanation: "为了保温，他们提议使用毛巾或帐篷套等不同材料进行测试。(They suggested using a towel or a tent cover for testing insulation.)"
+        },
+        {
+            icon: "🔒",
+            q: "在保温实验中，必须固定哪个事项（固定性变数）？<br>What must be kept constant in the insulation experiment? (Constant variable)",
+            options: [
+                "包裹瓶子的材料种类 (Type of wrapping material)",
+                "热水的体积和初始温度 (Volume and initial temperature of hot water)",
+                "最后的水温 (Final water temperature)",
+                "测量的地点 (Measurement location only)"
+            ],
+            answer: 1,
+            explanation: "为了确保实验公平，倒进玻璃瓶里的热水体积和初始时间/温度必须相同。(To ensure a fair test, the volume and initial temperature of water must be identical.)"
+        },
+        {
+            icon: "📝",
+            q: "进行科学探究时，第一步通常是什么？<br>What is usually the first step when conducting a scientific investigation?",
+            options: [
+                "记录观察结果 (Record observation results)",
+                "作出结论 (Make a conclusion)",
+                "提出问题 (Ask a question/Identify the problem)",
+                "诠释资料 (Interpret data)"
+            ],
+            answer: 2,
+            explanation: "科学探究的步骤始于观察现象并提出问题。(Scientific inquiry starts with observing and asking a question about a problem.)"
+        },
+        {
+            icon: "📊",
+            q: "收集并记录实验数据后，下一步应该做什么？<br>After collecting and recording experimental data, what is the next step?",
+            options: [
+                "直接结束实验 (End the experiment immediately)",
+                "诠释资料 (Interpret the data)",
+                "更改假设 (Change the hypothesis)",
+                "准备材料 (Prepare materials)"
+            ],
+            answer: 1,
+            explanation: "记录数据后，我们需要诠释资料以找出规律，进而作出结论。(After recording data, we interpret it to find patterns before concluding.)"
+        },
+        {
+            icon: "❌",
+            q: "如果实验结果表明假设不被接受，该怎么办？<br>What should be done if the experiment results show the hypothesis is not accepted?",
+            options: [
+                "修改实验数据 (Modify the experimental data)",
+                "假装假设被接受 (Pretend it is accepted)",
+                "重新提出假设并重试 (Propose a new hypothesis and retry)",
+                "放弃科学学习 (Give up learning science)"
+            ],
+            answer: 2,
+            explanation: "如果假设不成立，我们需要根据观察结果重新设定假设并再次测试。(If a hypothesis is rejected, we form a new one based on findings and test again.)"
+        },
+        {
+            icon: "🔧",
+            q: "在“杠杆的秘密”实验中，人们遇到了什么问题？<br>In the 'Secret of Levers' experiment, what problem did the people encounter?",
+            options: [
+                "自行车轮胎漏气 (Bicycle tire is flat)",
+                "螺帽太紧，拧不开 (The nut is too tight to unscrew)",
+                "扳手太重 (The wrench is too heavy)",
+                "找不到合适的油 (Cannot find suitable oil)"
+            ],
+            answer: 1,
+            explanation: "男孩和父亲在修理自行车时，发现螺帽太紧拧不开，从而引出了杠杆原理。(They couldn't unscrew a tight nut, leading to the use of a lever.)"
+        },
+        {
+            icon: "📏",
+            q: "在杠杆实验中，我们要探讨“所施的力”与什么之间的关系？<br>In the lever experiment, what relationship are we investigating with 'effort applied'?",
+            options: [
+                "扳手的颜色 (Color of the wrench)",
+                "动力点和支点的距离 (Distance between the effort and the fulcrum)",
+                "自行车的重量 (Weight of the bicycle)",
+                "当天的气温 (Temperature of the day)"
+            ],
+            answer: 1,
+            explanation: "实验探讨的是动力点和支点的距离越远，所施的力是否越小。(It tests if a greater distance between effort and fulcrum reduces the required force.)"
+        },
+        {
+            icon: "🧱",
+            q: "凯明搬运砖块上阶梯时，使用了什么工具？<br>What tool did Kai Ming use to move bricks up the stairs?",
+            options: [
+                "滑轮 (Pulley)",
+                "杠杆 (Lever)",
+                "斜面（木板） (Inclined plane / Wooden plank)",
+                "齿轮 (Gear)"
+            ],
+            answer: 2,
+            explanation: "他使用不同长度的木板搭在阶梯上形成斜面，用来推手推车。(He used wooden planks of different lengths to create inclined planes.)"
+        },
+        {
+            icon: "💪",
+            q: "根据搬运砖块的图表(P, Q, R)，哪种长度的斜面需要的力最小？<br>Based on the brick-moving charts (P, Q, R), which inclined plane length requires the least effort?",
+            options: [
+                "最短的斜面 (The shortest inclined plane)",
+                "最长的斜面 (The longest inclined plane)",
+                "中等长度的斜面 (The medium length inclined plane)",
+                "不使用斜面 (Not using an inclined plane)"
+            ],
+            answer: 1,
+            explanation: "在高度相同的情况下，斜面越长，所需的拉力/推力就越小。(For the same height, a longer inclined plane requires less force.)"
+        },
+        {
+            icon: "📐",
+            q: "在斜面实验中，操纵性变数是什么？<br>What is the manipulated variable in the inclined plane experiment?",
+            options: [
+                "砖块的数量 (Number of bricks)",
+                "手推车的重量 (Weight of the wheelbarrow)",
+                "木板的长度（斜面的长度） (Length of the wooden plank / inclined plane)",
+                "阶梯的高度 (Height of the stairs)"
+            ],
+            answer: 2,
+            explanation: "实验中凯明改变了木板的长度来测试哪种情况最省力。(Kai Ming changed the length of the wooden planks to test the effort needed.)"
+        },
+        {
+            icon: "🛒",
+            q: "如果凯明将手推车内砖块的数量减半，预测所需的力会有什么改变？<br>If the number of bricks is halved, predict the change in effort required.",
+            options: [
+                "所需的力会增加 (The effort required will increase)",
+                "所需的力保持不变 (The effort required will remain the same)",
+                "所需的力会减少 (The effort required will decrease)",
+                "无法推车 (Cannot push the cart at all)"
+            ],
+            answer: 2,
+            explanation: "载重量减少，搬运时所需的推力自然也会减少。(Less load means less force is required to move it up the plane.)"
+        },
+        {
+            icon: "🚰",
+            q: "敏敏观察到水池漏水时，提出了什么问题？<br>What question did Min Min raise when observing the leaking pool?",
+            options: [
+                "水为什么是蓝色的？(Why is the water blue?)",
+                "水管是不是坏了？(Is the water pipe broken?)",
+                "池里水的体积越少，水喷射的距离越近吗？(Does less water volume mean a shorter spurt distance?)",
+                "谁弄脏了水？(Who dirtied the water?)"
+            ],
+            answer: 2,
+            explanation: "她观察到随着水池里水的减少，水喷出来的距离变近了。(She noticed that as the water volume decreased, the water spurted a shorter distance.)"
+        },
+        {
+            icon: "💦",
+            q: "在水喷射距离的实验中，反应性变数是什么？<br>In the water spurt distance experiment, what is the responding variable?",
+            options: [
+                "瓶子的大小 (Size of the bottle)",
+                "水的颜色 (Color of the water)",
+                "水池的材质 (Material of the pool)",
+                "水喷射的距离 (The distance the water spurts)"
+            ],
+            answer: 3,
+            explanation: "我们要测量和观察的结果是水从小孔中喷射出来的距离。(The outcome we observe and measure is how far the water travels.)"
+        },
+        {
+            icon: "🎵",
+            q: "如果你用玻璃杯弹奏乐曲，什么会影响音调的高低？<br>If you play music with glass cups, what affects the pitch of the sound?",
+            options: [
+                "玻璃杯中水的体积 (The volume of water in the glass cups)",
+                "敲击的棒子的颜色 (The color of the striking stick)",
+                "房间的温度 (The temperature of the room)",
+                "水杯的摆放位置 (The position of the cups)"
+            ],
+            answer: 0,
+            explanation: "玻璃杯里装的水量不同，敲击时产生的震动频率不同，从而改变音调。(Different volumes of water change the vibration frequency, altering the pitch.)"
+        },
+        {
+            icon: "🧠",
+            q: "以下哪一项不属于“科学程序技能”？<br>Which of the following is NOT a 'Science Process Skill'?",
+            options: [
+                "观察 (Observing)",
+                "推断 (Inferring)",
+                "睡觉 (Sleeping)",
+                "假设 (Hypothesizing)"
+            ],
+            answer: 2,
+            explanation: "科学程序技能包括观察、分类、测量、推断、预测、沟通等，不包括睡觉。(Science process skills include observing, inferring, predicting, etc.)"
+        },
+        {
+            icon: "🗣️",
+            q: "实验完成后，我们把结果分享给同学，这运用了哪项科学程序技能？<br>Sharing experiment results with classmates applies which Science Process Skill?",
+            options: [
+                "测量 (Measuring)",
+                "沟通 (Communicating)",
+                "分类 (Classifying)",
+                "控制变数 (Controlling variables)"
+            ],
+            answer: 1,
+            explanation: "书写并分享实验报告、用图表展示结果等，都属于“沟通”技能。(Sharing reports and displaying results using charts falls under 'Communicating'.)"
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 20;
+    let hasAnswered = false;
+
+    const startScreen = document.getElementById('start-screen');
+    const quizScreen = document.getElementById('quiz-screen');
+    const endScreen = document.getElementById('end-screen');
+    const qImage = document.getElementById('q-image');
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const tracker = document.getElementById('question-tracker');
+    const timerDisplay = document.getElementById('timer-display');
+    const feedbackContainer = document.getElementById('feedback-container');
+    const nextBtn = document.getElementById('next-btn');
+
+    function startGame() {
+        startScreen.classList.add('hidden');
+        quizScreen.classList.remove('hidden');
+        currentQuestionIndex = 0;
+        score = 0;
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        hasAnswered = false;
+        timeLeft = 20;
+        timerDisplay.innerText = `⏱ ${timeLeft}s`;
+        feedbackContainer.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+        
+        const q = questions[currentQuestionIndex];
+        tracker.innerText = `题号 (Q): ${currentQuestionIndex + 1}/${questions.length}`;
+        qImage.innerText = q.icon;
+        questionText.innerHTML = q.q;
+        
+        optionsContainer.innerHTML = '';
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerHTML = opt;
+            btn.onclick = () => checkAnswer(index, btn);
+            optionsContainer.appendChild(btn);
+        });
+
+        clearInterval(timer);
+        timer = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+        timeLeft--;
+        timerDisplay.innerText = `⏱ ${timeLeft}s`;
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            handleTimeout();
+        }
+    }
+
+    function handleTimeout() {
+        if(hasAnswered) return;
+        hasAnswered = true;
+        disableOptions();
+        showFeedback(false, "时间到！(Time's up!)<br><br>📝 解析: " + questions[currentQuestionIndex].explanation);
+        nextBtn.classList.remove('hidden');
+    }
+
+    function checkAnswer(selectedIndex, btnElement) {
+        if (hasAnswered) return;
+        hasAnswered = true;
+        clearInterval(timer);
+        disableOptions();
+
+        const q = questions[currentQuestionIndex];
+        const isCorrect = (selectedIndex === q.answer);
+
+        if (isCorrect) {
+            score += 4;
+            btnElement.classList.add('correct-clicked');
+            showFeedback(true, "答对了！(Correct!)<br><br>📝 解析: " + q.explanation);
+        } else {
+            btnElement.classList.add('wrong-clicked');
+            showFeedback(false, "答错了。(Incorrect.)<br><br>📝 原理: " + q.explanation);
+            // Notice: We intentionally DO NOT show the correct answer here per instructions.
+        }
+        
+        nextBtn.classList.remove('hidden');
+    }
+
+    function disableOptions() {
+        const buttons = optionsContainer.getElementsByClassName('option-btn');
+        for (let btn of buttons) {
+            btn.disabled = true;
+        }
+    }
+
+    function showFeedback(isCorrect, message) {
+        feedbackContainer.innerHTML = message;
+        feedbackContainer.className = `feedback ${isCorrect ? 'correct-box' : 'wrong-box'}`;
+        feedbackContainer.classList.remove('hidden');
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+        } else {
+            endGame();
+        }
+    }
+
+    function endGame() {
+        quizScreen.classList.add('hidden');
+        endScreen.classList.remove('hidden');
+        
+        document.getElementById('final-score').innerText = score;
+        let grade = 'E';
+        if (score >= 85) grade = 'A';
+        else if (score >= 69) grade = 'B';
+        else if (score >= 53) grade = 'C';
+        else if (score >= 37) grade = 'D';
+
+        document.getElementById('final-grade').innerText = grade;
+    }
+
+    function resetGame() {
+        endScreen.classList.add('hidden');
+        startGame();
+    }
+</script>
+
+</body>
+</html>
