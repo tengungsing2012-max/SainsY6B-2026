@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科学小测验：人类生殖与神经系统 | Science Quiz</title>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --success-color: #2ECC71;
+            --danger-color: #E74C3C;
+            --bg-color: #F5F7FA;
+            --card-bg: #FFFFFF;
+            --text-color: #333333;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #game-container {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            padding: 25px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #EEE;
+        }
+        #timer {
+            color: var(--danger-color);
+            font-size: 1.5rem;
+        }
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+        .question-en {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 25px;
+        }
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            background-color: #F8F9FA;
+            border: 2px solid #E0E0E0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-color);
+            text-align: left;
+            line-height: 1.4;
+        }
+        .option-btn:hover {
+            background-color: #E8F0FE;
+            border-color: var(--primary-color);
+        }
+        .option-btn.correct {
+            background-color: var(--success-color);
+            color: white;
+            border-color: var(--success-color);
+        }
+        .option-btn.wrong {
+            background-color: var(--danger-color);
+            color: white;
+            border-color: var(--danger-color);
+        }
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+        #explanation-box {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            text-align: left;
+        }
+        .explanation-correct {
+            background-color: #D5F5E3;
+            color: #1D8348;
+            border: 1px solid #2ECC71;
+        }
+        .explanation-wrong {
+            background-color: #FADBD8;
+            color: #943126;
+            border: 1px solid #E74C3C;
+        }
+        #next-btn, #start-btn, #form-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.3rem;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            font-weight: bold;
+        }
+        #next-btn:hover, #start-btn:hover, #form-btn:hover {
+            background-color: #357ABD;
+        }
+        #score-screen {
+            display: none;
+        }
+        .grade {
+            font-size: 4rem;
+            font-weight: bold;
+            margin: 10px 0;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="start-screen">
+        <h1>科学挑战：生殖与神经系统</h1>
+        <h3>Science Challenge: Reproduction & Nervous System</h3>
+        <p style="font-size:1.2rem; line-height: 1.6;">
+            共 25 题，每题 4 分。<br>
+            25 Questions, 4 points each.<br>
+            请在 <b>12秒</b> 内作答！<br>
+            Answer within <b>12 seconds</b>!
+        </p>
+        <button id="start-btn" onclick="startGame()">开始游戏 Start Game</button>
+    </div>
+
+    <div id="quiz-screen" style="display:none;">
+        <div class="header-info">
+            <span id="question-counter">题/Q: 1/25</span>
+            <span id="score-display">分数/Score: 0</span>
+            <span id="timer">⏱️ 12s</span>
+        </div>
+        
+        <div class="question-text" id="question-zh"></div>
+        <div class="question-en" id="question-en"></div>
+        
+        <div id="options-container"></div>
+        
+        <div id="explanation-box"></div>
+        
+        <button id="next-btn" style="display:none;" onclick="nextQuestion()">下一题 Next Question</button>
+    </div>
+
+    <div id="score-screen">
+        <h1>测验结束！ Quiz Completed!</h1>
+        <h2 style="font-size: 2rem; margin-top:20px;">你的总分 Your Score: <span id="final-score">0</span>/100</h2>
+        <p style="font-size: 1.5rem;">等级 Grade:</p>
+        <div class="grade" id="final-grade">A</div>
+        <p id="grade-message" style="font-size: 1.2rem; margin-bottom: 30px;"></p>
+        
+        <button id="form-btn" onclick="goToForm()">填写分数 Submit Score 🚀</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            zh: "男性的生殖细胞称为什么？", en: "What is the male reproductive cell called?",
+            options: ["精子 (Sperm)", "卵子 (Ovum)", "胚胎 (Embryo)"], answer: 0,
+            expZh: "男性的生殖细胞称为精子。女性的生殖细胞称为卵子。", expEn: "The male reproductive cell is called sperm. The female reproductive cell is called ovum."
+        },
+        {
+            zh: "哪个器官能产生精子？", en: "Which organ produces sperm?",
+            options: ["睾丸 (Testis)", "阴茎 (Penis)", "子宫 (Uterus)"], answer: 0,
+            expZh: "睾丸是男性的生殖器官，功能是产生精子。", expEn: "The testis is a male reproductive organ that produces sperm."
+        },
+        {
+            zh: "阴茎的功能是什么？", en: "What is the function of the penis?",
+            options: ["产生卵子 (Produce ovum)", "把精液输入女性的阴道 (Transfer semen into the female's vagina)", "储存尿液 (Store urine)"], answer: 1,
+            expZh: "阴茎把精液输入到女性的阴道。", expEn: "The penis transfers semen into the female's vagina."
+        },
+        {
+            zh: "哪个器官能产生卵子？", en: "Which organ produces the ovum (egg)?",
+            options: ["输卵管 (Fallopian tube)", "阴道 (Vagina)", "卵巢 (Ovary)"], answer: 2,
+            expZh: "卵巢是女性的生殖器官，能产生卵子。", expEn: "The ovary is a female reproductive organ that produces the ovum."
+        },
+        {
+            zh: "胚胎发育和胎儿成长的地方是哪里？", en: "Where does the embryo develop and the fetus grow?",
+            options: ["子宫 (Uterus)", "输卵管 (Fallopian tube)", "卵巢 (Ovary)"], answer: 0,
+            expZh: "子宫是胚胎发育和胎儿成长的地方。", expEn: "The uterus is where the embryo develops and the fetus grows."
+        },
+        {
+            zh: "阴道的作用是什么？", en: "What is the role of the vagina?",
+            options: ["精子进入和产出胎儿的通道 (Passage for sperm entry and fetus birth)", "产生卵子 (Produce ovum)", "发育胚胎 (Develop embryo)"], answer: 0,
+            expZh: "阴道是精子进入和产出胎儿的通道。", expEn: "The vagina is the passage for sperm to enter and the fetus to be born."
+        },
+        {
+            zh: "精子和卵子结合的过程称为什么？", en: "What is the process of a sperm joining with an ovum called?",
+            options: ["受精 (Fertilization)", "着床 (Implantation)", "分裂 (Division)"], answer: 0,
+            expZh: "精子与卵子结合形成受精卵的过程称为受精。", expEn: "The process of a sperm joining an ovum to form a fertilized egg is called fertilization."
+        },
+        {
+            zh: "受精卵着床在哪里？", en: "Where does the fertilized egg implant?",
+            options: ["子宫壁 (Uterine wall)", "输卵管 (Fallopian tube)", "阴道 (Vagina)"], answer: 0,
+            expZh: "受精卵进入子宫后，会附在子宫壁上，这称为着床。", expEn: "After entering the uterus, the fertilized egg attaches to the uterine wall, called implantation."
+        },
+        {
+            zh: "胎盘通过什么与胎儿相连？", en: "What connects the placenta to the fetus?",
+            options: ["神经 (Nerve)", "脐带 (Umbilical cord)", "输卵管 (Fallopian tube)"], answer: 1,
+            expZh: "脐带连接胎盘，把氧气和营养素输送给胎儿。", expEn: "The umbilical cord connects the placenta to deliver oxygen and nutrients to the fetus."
+        },
+        {
+            zh: "子宫里充满什么来保护胎儿？", en: "What is the uterus filled with to protect the fetus?",
+            options: ["羊水 (Amniotic fluid)", "血液 (Blood)", "胃酸 (Gastric acid)"], answer: 0,
+            expZh: "子宫里充满温暖的羊水，保护着胎儿。", expEn: "The uterus is filled with warm amniotic fluid to protect the fetus."
+        },
+        {
+            zh: "胎儿大约需要多少个月发育成熟并出生？", en: "Approximately how many months does it take for a fetus to fully develop and be born?",
+            options: ["9个月 (9 months)", "6个月 (6 months)", "12个月 (12 months)"], answer: 0,
+            expZh: "大约九个月后，发育成熟的胎儿就要诞生了。", expEn: "After about nine months, the fully developed fetus is ready to be born."
+        },
+        {
+            zh: "从第几个月起，有些母亲开始能感觉到胎动？", en: "From which month can some mothers start to feel fetal movements?",
+            options: ["第8个月 (8th month)", "第4个月 (4th month)", "第2个月 (2nd month)"], answer: 1,
+            expZh: "从第四个月起，有些母亲开始能感觉到胎动。", expEn: "From the fourth month, some mothers start to feel fetal movements."
+        },
+        {
+            zh: "为什么繁殖对人类很重要？", en: "Why is reproduction important to humans?",
+            options: ["避免绝种 (To prevent extinction)", "增加氧气 (To increase oxygen)", "保护神经 (To protect nerves)"], answer: 0,
+            expZh: "繁殖能增加新个体，确保人类物种得以延续，避免绝种。", expEn: "Reproduction ensures the continuation of the human species and prevents extinction."
+        },
+        {
+            zh: "神经系统主要分为哪两个部分？", en: "What are the two main parts of the nervous system?",
+            options: ["中枢和周围神经系统 (Central and Peripheral)", "脑和脊髓 (Brain and Spinal Cord)", "消化和呼吸系统 (Digestive and Respiratory)"], answer: 0,
+            expZh: "神经系统包括中枢神经系统和周围神经系统。", expEn: "The nervous system includes the central and peripheral nervous systems."
+        },
+        {
+            zh: "中枢神经系统由什么组成？", en: "What makes up the central nervous system?",
+            options: ["脑和脊髓 (Brain and spinal cord)", "肌肉和骨骼 (Muscles and bones)", "血管和心脏 (Blood vessels and heart)"], answer: 0,
+            expZh: "中枢神经系统主要是由脑和脊髓组成的。", expEn: "The central nervous system consists mainly of the brain and spinal cord."
+        },
+        {
+            zh: "人体神经系统的指挥中心是什么？", en: "What is the command center of the human nervous system?",
+            options: ["心脏 (Heart)", "脑 (Brain)", "脊髓 (Spinal cord)"], answer: 1,
+            expZh: "脑是人体神经系统的指挥中心，负责分析和处理信息。", expEn: "The brain is the command center of the nervous system, analyzing and processing info."
+        },
+        {
+            zh: "连接脑与周围神经的主要通路是什么？", en: "What is the main pathway connecting the brain and peripheral nerves?",
+            options: ["脊髓 (Spinal cord)", "血管 (Blood vessel)", "神经元 (Neuron)"], answer: 0,
+            expZh: "脊髓是连接脑与周围神经的主要通路。", expEn: "The spinal cord is the main pathway connecting the brain and peripheral nerves."
+        },
+        {
+            zh: "哪个系统负责在人体内传递信息？", en: "Which system is responsible for transmitting information in the body?",
+            options: ["呼吸系统 (Respiratory system)", "消化系统 (Digestive system)", "周围神经系统 (Peripheral nervous system)"], answer: 2,
+            expZh: "周围神经系统使信息能够在人体不停地来回传递。", expEn: "The peripheral nervous system transmits information back and forth in the body."
+        },
+        {
+            zh: "如果周围神经系统受损，会发生什么事？", en: "What happens if the peripheral nervous system is damaged?",
+            options: ["视力变好 (Better vision)", "无法传递信息 (Unable to transmit info)", "长得更高 (Grow taller)"], answer: 1,
+            expZh: "受损的周围神经系统将无法传递信息，感觉器官无法感知刺激。", expEn: "A damaged peripheral nervous system cannot transmit info, and organs can't sense stimuli."
+        },
+        {
+            zh: "如果脚部神经受损，可能会导致什么？", en: "What might happen if the nerves in the legs are damaged?",
+            options: ["听力下降 (Hearing loss)", "失去视力 (Loss of vision)", "下肢瘫痪，无法行走 (Paralysis, unable to walk)"], answer: 2,
+            expZh: "脚部神经受损造成下肢瘫痪，无法站立和行走。", expEn: "Damaged leg nerves can cause paralysis of the lower limbs, making walking impossible."
+        },
+        {
+            zh: "视神经受损会导致什么？", en: "What does damage to the optic nerve cause?",
+            options: ["丧失视力 (Loss of vision)", "面部瘫痪 (Facial paralysis)", "失去平衡 (Loss of balance)"], answer: 0,
+            expZh: "视神经受损导致丧失视力，眼睛无法感知外来的光线。", expEn: "Damage to the optic nerve causes loss of vision; eyes cannot perceive light."
+        },
+        {
+            zh: "骑脚踏车时为什么要穿戴安全护具？", en: "Why wear safety gear when cycling?",
+            options: ["保护神经系统以减低受伤风险 (Protect nervous system & reduce injury risk)", "为了保暖 (To keep warm)", "为了美观 (For aesthetics)"], answer: 0,
+            expZh: "穿戴安全护具可以做好安全措施，减低神经系统受伤的风险。", expEn: "Wearing safety gear protects the nervous system and reduces the risk of injury."
+        },
+        {
+            zh: "哪项是保护神经系统的正确方法？", en: "Which is a correct way to protect the nervous system?",
+            options: ["保持正确的姿势 (Maintain correct posture)", "挑食 (Picky eating)", "熬夜 (Staying up late)"], answer: 0,
+            expZh: "阅读或活动时保持正确姿势，可避免脊髓受到压迫而受伤。", expEn: "Maintaining correct posture prevents the spinal cord from being compressed and injured."
+        },
+        {
+            zh: "酒精和毒品对神经系统有什么影响？", en: "What effect do alcohol and drugs have on the nervous system?",
+            options: ["损害神经系统 (Damage the nervous system)", "促进脑部发育 (Promote brain development)", "增加体力 (Increase stamina)"], answer: 0,
+            expZh: "酒精和毒品是会损害神经系统的有害化学物质，应远离。", expEn: "Alcohol and drugs are harmful chemicals that damage the nervous system and should be avoided."
+        },
+        {
+            zh: "充足的睡眠对神经系统有益吗？", en: "Is adequate sleep beneficial to the nervous system?",
+            options: ["没有影响 (No effect)", "有益 (Beneficial)", "有害 (Harmful)"], answer: 1,
+            expZh: "充足的睡眠是实践健康生活方式的一部分，能保护神经系统。", expEn: "Adequate sleep is part of a healthy lifestyle and protects the nervous system."
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timeLeft = 12;
+    let timerInterval;
+
+    const gameContainer = document.getElementById('game-container');
+    const startScreen = document.getElementById('start-screen');
+    const quizScreen = document.getElementById('quiz-screen');
+    const scoreScreen = document.getElementById('score-screen');
+    
+    function startGame() {
+        startScreen.style.display = 'none';
+        quizScreen.style.display = 'block';
+        currentQuestionIndex = 0;
+        score = 0;
+        loadQuestion();
+    }
+
+    function startTimer() {
+        timeLeft = 12;
+        document.getElementById('timer').innerText = `⏱️ ${timeLeft}s`;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').innerText = `⏱️ ${timeLeft}s`;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                checkAnswer(-1); // -1 means timeout
+            }
+        }, 1000);
+    }
+
+    function loadQuestion() {
+        const q = quizData[currentQuestionIndex];
+        document.getElementById('question-counter').innerText = `题/Q: ${currentQuestionIndex + 1}/${quizData.length}`;
+        document.getElementById('score-display').innerText = `分数/Score: ${score}`;
+        
+        document.getElementById('question-zh').innerText = q.zh;
+        document.getElementById('question-en').innerText = q.en;
+        
+        const optionsContainer = document.getElementById('options-container');
+        optionsContainer.innerHTML = '';
+        
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(index);
+            optionsContainer.appendChild(btn);
+        });
+
+        document.getElementById('explanation-box').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'none';
+        
+        startTimer();
+    }
+
+    function checkAnswer(selectedIndex) {
+        clearInterval(timerInterval);
+        const q = quizData[currentQuestionIndex];
+        const btns = document.querySelectorAll('.option-btn');
+        const expBox = document.getElementById('explanation-box');
+        
+        btns.forEach(btn => btn.disabled = true); // Disable all buttons
+
+        let isCorrect = selectedIndex === q.answer;
+
+        if (isCorrect) {
+            score += 4;
+            btns[selectedIndex].classList.add('correct');
+            expBox.className = 'explanation-correct';
+            expBox.innerHTML = `<strong>✔️ 答对了！ Correct!</strong><br><br>${q.expZh}<br><em>${q.expEn}</em>`;
+        } else {
+            if(selectedIndex >= 0) btns[selectedIndex].classList.add('wrong');
+            btns[q.answer].classList.add('correct'); // Show correct answer
+            
+            expBox.className = 'explanation-wrong';
+            let title = selectedIndex === -1 ? "⏰ 时间到！ Time's Up!" : "❌ 答错了！ Wrong!";
+            expBox.innerHTML = `<strong>${title}</strong><br><br>${q.expZh}<br><em>${q.expEn}</em>`;
+        }
+
+        document.getElementById('score-display').innerText = `分数/Score: ${score}`;
+        expBox.style.display = 'block';
+        document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            loadQuestion();
+        } else {
+            endGame();
+        }
+    }
+
+    function endGame() {
+        quizScreen.style.display = 'none';
+        scoreScreen.style.display = 'block';
+        document.getElementById('final-score').innerText = score;
+        
+        let grade = 'E';
+        let msg = '再接再厉！ Keep trying, never give up!';
+        
+        if (score > 84) { grade = 'A'; msg = '太棒了！ Excellent job!'; }
+        else if (score > 68) { grade = 'B'; msg = '做得好！ Good job!'; }
+        else if (score > 52) { grade = 'C'; msg = '不错哦！ Not bad!'; }
+        else if (score > 36) { grade = 'D'; msg = '还需要多复习！ Needs more review!'; }
+        
+        const gradeEl = document.getElementById('final-grade');
+        gradeEl.innerText = grade;
+        document.getElementById('grade-message').innerText = msg;
+    }
+
+    function goToForm() {
+        window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSdmO6Qhh6rsblFXpy5ptxH3PgOUzZ_YMI2ln3AAsasxdTnOZg/viewform?usp=sharing&ouid=117866032446351157872";
+    }
+</script>
+
+</body>
+</html>
